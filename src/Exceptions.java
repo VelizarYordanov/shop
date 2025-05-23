@@ -6,9 +6,15 @@ public class Exceptions {
         }
     }
 
-    public static class InsufficientFundsException extends Exception {
-        public InsufficientFundsException(double requiredAmount) {
-            super(String.format("Недостатъчно пари. Трябват още %.2f лв.", requiredAmount));
+    public static class InsufficientMoneyException extends Exception {
+        public InsufficientMoneyException(double needed) {
+            super("Недостатъчно пари. Трябват още: " + String.format("%.2f", needed) + " лв.");
+        }
+    }
+
+    public static class ExpiredProductException extends Exception {
+        public ExpiredProductException(String message) {
+            super(message);
         }
     }
 }

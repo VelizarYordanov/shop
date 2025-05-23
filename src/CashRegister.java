@@ -1,3 +1,5 @@
+import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -5,46 +7,86 @@ public class CashRegister {
     private String registerId;
     private Cashier cashier;
     private Store store;
-    private Map<Product, Integer> currentSale;
+    private Map<Product, Integer> saleItems;
 
     public CashRegister(String registerId, Cashier cashier, Store store) {
         this.registerId = registerId;
         this.cashier = cashier;
         this.store = store;
-        this.currentSale = new HashMap<>();
+        this.saleItems = new HashMap<>();
     }
 
     public void addProductToSale(Product product, int quantity) throws Exceptions.InsufficientQuantityException {
-        int alreadyRequested = currentSale.getOrDefault(product, 0);
-        int totalRequested = alreadyRequested + quantity;
-        if (product.getQuantity() < totalRequested) {
-            throw new Exceptions.InsufficientQuantityException(product.getName(), totalRequested, product.getQuantity());
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("Количество трябва да е положително.");
         }
-        currentSale.put(product, totalRequested);
+        if (product.getQuantity() < quantity) {
+            throw new Exceptions.InsufficientQuantityException(product.getName(), quantity, product.getQuantity());
+        }
+        saleItems.put(product, saleItems.getOrDefault(product, 0) + quantity);
     }
 
-    public Receipt completeSale(double customerMoney) throws Exceptions.InsufficientFundsException {
-        double totalAmount = 0;
-        for (Map.Entry<Product, Integer> entry : currentSale.entrySet()) {
-            Product product = entry.getKey();
-            int quantity = entry.getValue();
-            totalAmount += store.calculateSellingPrice(product) * quantity;
+    public Receipt completeSale(double paidAmount) throws Exceptions.InsufficientMoneyException, Exceptions.InsufficientQuantityException, Exceptions.ExpiredProductException, IOException {
+        if (saleItems.isEmpty()) {
+            throw new IllegalStateException("Няма добавени продукти за продажба.");
         }
 
-        if (customerMoney < totalAmount) {
-            double shortage = totalAmount - customerMoney;
-            throw new Exceptions.InsufficientFundsException(shortage);
-        }
+        double totalPrice = 0;
+        Map<Product, Receipt.ItemSale> productsSoldMap = new HashMap<>();
 
-        // Намаляваме количествата след успешна проверка на парите
-        for (Map.Entry<Product, Integer> entry : currentSale.entrySet()) {
+        // Проверка за количество, изчисляване на цена и създаване на ItemSale записи
+        for (Map.Entry<Product, Integer> entry : saleItems.entrySet()) {
             Product product = entry.getKey();
             int quantity = entry.getValue();
+
+            double unitPrice = store.calculateSellingPrice(product);
+
+            if (product.getQuantity() < quantity) {
+                throw new Exceptions.InsufficientQuantityException(product.getName(), quantity, product.getQuantity());
+            }
+
+            totalPrice += unitPrice * quantity;
+            productsSoldMap.put(product, new Receipt.ItemSale(quantity, unitPrice));
+        }
+
+        // Проверка дали платената сума стига
+        if (paidAmount < totalPrice) {
+            double diff = totalPrice - paidAmount;
+            throw new Exceptions.InsufficientMoneyException(diff);
+        }
+
+        // Актуализация на количествата
+        for (Map.Entry<Product, Receipt.ItemSale> entry : productsSoldMap.entrySet()) {
+            Product product = entry.getKey();
+            int quantity = entry.getValue().quantity;
             product.decreaseQuantity(quantity);
         }
 
-        Receipt receipt = new Receipt(registerId, cashier, new HashMap<>(currentSale), totalAmount, customerMoney, store);
-        currentSale.clear();
+        int receiptNumber = store.getNextReceiptNumber();
+
+        Receipt receipt = new Receipt(
+                receiptNumber,
+                this.registerId,
+                this.cashier,
+                productsSoldMap,
+                totalPrice,
+                paidAmount
+        );
+
+        // Добавяне и записване автоматично в Store
+        store.addReceipt(receipt);
+        store.saveReceiptToFile(receipt);
+
+        saleItems.clear();
+
         return receipt;
+    }
+
+    public String getRegisterId() {
+        return registerId;
+    }
+
+    public Cashier getCashier() {
+        return cashier;
     }
 }
