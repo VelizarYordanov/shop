@@ -34,7 +34,6 @@ public class CashRegister {
         double totalPrice = 0;
         Map<Product, Receipt.ItemSale> productsSoldMap = new HashMap<>();
 
-        // Проверка за количество, изчисляване на цена и създаване на ItemSale записи
         for (Map.Entry<Product, Integer> entry : saleItems.entrySet()) {
             Product product = entry.getKey();
             int quantity = entry.getValue();
@@ -49,13 +48,11 @@ public class CashRegister {
             productsSoldMap.put(product, new Receipt.ItemSale(quantity, unitPrice));
         }
 
-        // Проверка дали платената сума стига
         if (paidAmount < totalPrice) {
             double diff = totalPrice - paidAmount;
             throw new Exceptions.InsufficientMoneyException(diff);
         }
 
-        // Актуализация на количествата
         for (Map.Entry<Product, Receipt.ItemSale> entry : productsSoldMap.entrySet()) {
             Product product = entry.getKey();
             int quantity = entry.getValue().quantity;
@@ -73,7 +70,6 @@ public class CashRegister {
                 paidAmount
         );
 
-        // Добавяне и записване автоматично в Store
         store.addReceipt(receipt);
         store.saveReceiptToFile(receipt);
 

@@ -4,62 +4,81 @@ public class Main {
     public static void main(String[] args) {
         Store store = new Store(0.3, 0.2, 3, 0.1);
 
-        // Добавяне на продукти
-        Product p1 = new Product("1", "Мляко", 1.20, Category.FOOD, LocalDate.now().plusDays(2), 10);
-        Product p2 = new Product("2", "Хляб", 0.80, Category.FOOD, LocalDate.now().plusDays(1), 5);
-        Product p3 = new Product("3", "Шоколад", 1.50, Category.FOOD, LocalDate.now().plusDays(20), 20);
-        Product p4 = new Product("4", "Сапун", 2.00, Category.NON_FOOD, LocalDate.now().plusDays(100), 15);
-        Product p5 = new Product("5", "Паста за зъби", 3.00, Category.NON_FOOD, LocalDate.now().plusDays(50), 10);
+        Product milk = new Product("P001", "Мляко", 1.20, Category.FOOD, LocalDate.now().plusDays(2), 50);
+        Product bread = new Product("P002", "Хляб", 0.80, Category.FOOD, LocalDate.now().plusDays(1), 30);
+        Product chocolate = new Product("P003", "Шоколад", 1.50, Category.FOOD, LocalDate.now().plusDays(20), 100);
+        Product soap = new Product("P004", "Сапун", 2.00, Category.NON_FOOD, LocalDate.now().plusDays(100), 80);
+        Product toothpaste = new Product("P005", "Паста за зъби", 3.00, Category.NON_FOOD, LocalDate.now().plusDays(50), 40);
 
-        store.addProduct(p1);
-        store.addProduct(p2);
-        store.addProduct(p3);
-        store.addProduct(p4);
-        store.addProduct(p5);
+        store.addProduct(milk);
+        store.addProduct(bread);
+        store.addProduct(chocolate);
+        store.addProduct(soap);
+        store.addProduct(toothpaste);
 
-        // Добавяне на касиери
-        Cashier cashier1 = new Cashier("1001", "Георги Иванов", 1200);
-        Cashier cashier2 = new Cashier("1002", "Иван Петров", 1000);
+        Cashier cashier1 = new Cashier("C001", "Георги Иванов", 1200);
+        Cashier cashier2 = new Cashier("C002", "Иван Петров", 1000);
 
         store.addCashier(cashier1);
         store.addCashier(cashier2);
 
-        // Създаване на касови апарати с касиери
         CashRegister register1 = new CashRegister("K001", cashier1, store);
         CashRegister register2 = new CashRegister("K002", cashier2, store);
 
         try {
-            // Първа продажба
-            register1.addProductToSale(p1, 5);
-            register1.addProductToSale(p4, 2);
+            // Продажба на каса 1
+            register1.addProductToSale(milk, 5);
+            register1.addProductToSale(soap, 3);
             Receipt receipt1 = register1.completeSale(20);
+            System.out.println("Продажба 1:");
             receipt1.printReceipt();
-
             System.out.println();
 
-            // Втора продажба
-            register2.addProductToSale(p3, 3);
-            register2.addProductToSale(p5, 1);
-            Receipt receipt2 = register2.completeSale(15);
+            // Продажба на каса 2
+            register2.addProductToSale(chocolate, 10);
+            register2.addProductToSale(toothpaste, 1);
+            Receipt receipt2 = register2.completeSale(25);
+            System.out.println("Продажба 2:");
             receipt2.printReceipt();
-
             System.out.println();
 
-            // Прочитане на касовата бележка от файл
-            Receipt loadedReceipt = store.loadReceiptFromFile(receipt1.getReceiptNumber());
-            System.out.println("Прочетена касова бележка от файл:");
-            loadedReceipt.printReceipt();
+            // Опит за продажба с недостатъчно количество
+            try {
+                register1.addProductToSale(bread, 40); // имаме 30 само
+                Receipt receipt3 = register1.completeSale(50);
+            } catch (Exceptions.InsufficientQuantityException e) {
+                System.out.println("Грешка: " + e.getMessage());
+            }
 
-        } catch (Exceptions.InsufficientMoneyException | Exceptions.InsufficientQuantityException | Exceptions.ExpiredProductException e) {
-            System.out.println("Грешка при продажбата: " + e.getMessage());
+            // Опит за продажба на продукт с изтекъл срок
+            Product expiredProduct = new Product("P006", "Кисело мляко", 1.00, Category.FOOD, LocalDate.now().minusDays(1), 10);
+            store.addProduct(expiredProduct);
+
+            try {
+                register2.addProductToSale(expiredProduct, 1);
+                Receipt receipt4 = register2.completeSale(5);
+            } catch (Exceptions.ExpiredProductException e) {
+                System.out.println("Грешка: " + e.getMessage());
+            }
+
+            // Опит за продажба с недостатъчно пари
+            register1.addProductToSale(chocolate, 2);
+            try {
+                Receipt receipt5 = register1.completeSale(1); // недостатъчна сума
+            } catch (Exceptions.InsufficientMoneyException e) {
+                System.out.println("Грешка: " + e.getMessage());
+            }
+
+            // Извеждане на статистики за магазина
+            System.out.println("Общо издадени касови бележки: " + store.getIssuedReceipts().size());
+            System.out.printf("Общ оборот: %.2f лв.%n", store.calculateTotalRevenue());
+            System.out.printf("Общо разходи за заплати: %.2f лв.%n", store.calculateTotalSalaries());
+            System.out.printf("Общо разходи за доставки: %.2f лв.%n", store.calculateTotalDeliveryCosts());
+            System.out.printf("Печалба: %.2f лв.%n", store.calculateProfit());
+
         } catch (Exception e) {
-            System.out.println("Грешка при работа с файл: " + e.getMessage());
+            System.out.println("Непредвидена грешка: " + e.getMessage());
+            e.printStackTrace();
         }
-
-        System.out.println("\nОбщо издадени касови бележки: " + store.getIssuedReceipts().size());
-        System.out.printf("Общ оборот: %.2f лв.%n", store.calculateTotalRevenue());
-        System.out.printf("Общо разходи за заплати: %.2f лв.%n", store.calculateTotalSalaries());
-        System.out.printf("Общо разходи за доставки: %.2f лв.%n", store.calculateTotalDeliveryCosts());
-        System.out.printf("Печалба: %.2f лв.%n", store.calculateProfit());
     }
 }
