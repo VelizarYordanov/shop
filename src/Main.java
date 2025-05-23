@@ -44,7 +44,7 @@ public class Main {
 
             // Опит за продажба с недостатъчно количество
             try {
-                register1.addProductToSale(bread, 40); // имаме 30 само
+                register1.addProductToSale(bread, 40);
                 Receipt receipt3 = register1.completeSale(50);
             } catch (Exceptions.InsufficientQuantityException e) {
                 System.out.println("Грешка: " + e.getMessage());
@@ -69,7 +69,6 @@ public class Main {
                 System.out.println("Грешка: " + e.getMessage());
             }
 
-            // Извеждане на статистики за магазина
             System.out.println("Общо издадени касови бележки: " + store.getIssuedReceipts().size());
             System.out.printf("Общ оборот: %.2f лв.%n", store.calculateTotalRevenue());
             System.out.printf("Общо разходи за заплати: %.2f лв.%n", store.calculateTotalSalaries());
