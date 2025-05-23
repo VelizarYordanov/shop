@@ -30,11 +30,11 @@ public class Main {
         CashRegister register = new CashRegister("K001", cashier, store);
 
         try {
-            register.addProductToSale(p1, 100);
+            register.addProductToSale(p1, 10);
             register.addProductToSale(p3, 1);
             register.addProductToSale(p4, 1);
 
-            Receipt receipt = register.completeSale(20000);
+            Receipt receipt = register.completeSale(10);
             receipt.printReceipt();
         } catch (InsufficientQuantityException | IllegalArgumentException e) {
             System.out.println("Грешка при продажбата: " + e.getMessage());

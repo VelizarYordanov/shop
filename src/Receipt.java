@@ -1,3 +1,5 @@
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 public class Receipt {
@@ -30,5 +32,9 @@ public class Receipt {
         System.out.printf("Общо: %.2f лв.%n", totalAmount);
         System.out.printf("Платено: %.2f лв.%n", customerMoney);
         System.out.printf("Ресто: %.2f лв.%n", customerMoney - totalAmount);
+        LocalDateTime dateobj = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+        String formattedDate = dateobj.format(formatter);
+        System.out.printf("Дата на продажба: " + formattedDate + "%n");
     }
 }
