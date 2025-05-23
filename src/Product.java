@@ -1,6 +1,9 @@
+import java.io.Serializable;
 import java.time.LocalDate;
 
-public class Product {
+public class Product implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     private String id;
     private String name;
     private double purchasePrice;
@@ -12,10 +15,10 @@ public class Product {
         this(id, name, purchasePrice, category, expirationDate, 0);
     }
 
-    public Product(String id, String name, double deliveryPrice, Category category, LocalDate expirationDate, int quantity) {
+    public Product(String id, String name, double purchasePrice, Category category, LocalDate expirationDate, int quantity) {
         this.id = id;
         this.name = name;
-        this.purchasePrice = deliveryPrice;
+        this.purchasePrice = purchasePrice;
         this.category = category;
         this.expirationDate = expirationDate;
         this.quantity = quantity;

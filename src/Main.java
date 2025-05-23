@@ -1,3 +1,4 @@
+import java.io.IOException;
 import java.time.LocalDate;
 
 public class Main {
@@ -34,9 +35,23 @@ public class Main {
             register.addProductToSale(p3, 1);
             register.addProductToSale(p4, 1);
 
-            Receipt receipt = register.completeSale(10);
-            receipt.printReceipt();
-        } catch (InsufficientQuantityException | IllegalArgumentException e) {
+            Receipt receipt = register.completeSale(20);
+
+            System.out.println("Общо издадени касови бележки: " + Receipt.getReceiptCounter());
+            System.out.println("Общ оборот: " + Receipt.getTotalTurnover() + " лв.");
+
+            // Отделен try-catch за IO и ClassNotFound при четене на файл
+            try {
+                Receipt loadedReceipt = Receipt.readFromFile("receipt_" + receipt.getReceiptNumber() + ".ser");
+                System.out.println("=== Заредена касова бележка от файл ===");
+                loadedReceipt.printReceipt();
+            } catch (IOException | ClassNotFoundException e) {
+                System.out.println("Грешка при зареждане на касовата бележка: " + e.getMessage());
+            }
+
+        } catch (Exceptions.InsufficientQuantityException | IllegalArgumentException e) {
+            System.out.println("Грешка при продажбата: " + e.getMessage());
+        } catch (Exceptions.InsufficientFundsException e) {
             System.out.println("Грешка при продажбата: " + e.getMessage());
         }
     }
