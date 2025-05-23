@@ -1,34 +1,42 @@
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Store {
-    private double foodMarkupPercent;
-    private double nonFoodMarkupPercent;
-    private int daysBeforeExpirationForDiscount;
-    private double discountPercent;
+    private List<Product> products = new ArrayList<>();
+    private double foodMarkup;
+    private double nonFoodMarkup;
+    private int expirationDaysThreshold;
+    private double discountPercentage;
 
-    public Store(double foodMarkupPercent, double nonFoodMarkupPercent, int daysBeforeExpirationForDiscount, double discountPercent) {
-        this.foodMarkupPercent = foodMarkupPercent;
-        this.nonFoodMarkupPercent = nonFoodMarkupPercent;
-        this.daysBeforeExpirationForDiscount = daysBeforeExpirationForDiscount;
-        this.discountPercent = discountPercent;
+    public Store(double foodMarkup, double nonFoodMarkup, int expirationDaysThreshold, double discountPercentage) {
+        this.foodMarkup = foodMarkup;
+        this.nonFoodMarkup = nonFoodMarkup;
+        this.expirationDaysThreshold = expirationDaysThreshold;
+        this.discountPercentage = discountPercentage;
+    }
+
+    public void addProduct(Product product) {
+        products.add(product);
+    }
+
+    public List<Product> getProducts() {
+        return products;
     }
 
     public double calculateSellingPrice(Product product) {
-        LocalDate today = LocalDate.now();
-        if (product.getExpirationDate().isBefore(today) || product.getExpirationDate().isEqual(today)) {
-            // Product expired, should not be sold
-            return -1;
+        if (product.getExpirationDate().isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException("Продуктът е с изтекъл срок на годност: " + product.getName());
         }
 
-        double markup = (product.getCategory() == Category.FOOD) ? foodMarkupPercent : nonFoodMarkupPercent;
-        double basePrice = product.getPurchasePrice() * (1 + markup / 100);
+        double markup = (product.getCategory() == Category.FOOD) ? foodMarkup : nonFoodMarkup;
+        double price = product.getPurchasePrice() * (1 + markup);
 
-        long daysToExpire = ChronoUnit.DAYS.between(today, product.getExpirationDate());
-        if (daysToExpire < daysBeforeExpirationForDiscount) {
-            basePrice *= (1 - discountPercent / 100);
+        long daysToExpire = LocalDate.now().until(product.getExpirationDate()).getDays();
+        if (daysToExpire <= expirationDaysThreshold) {
+            price *= (1 - discountPercentage);
         }
 
-        return basePrice;
+        return price;
     }
 }

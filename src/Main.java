@@ -1,31 +1,43 @@
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
-        Store store = new Store(20.0, 30.0, 5, 10.0);
+        Store store = new Store(0.3, 0.2, 3, 0.1);
 
-        List<Product> products = new ArrayList<>();
-        products.add(new Product("P001", "Хляб", 1.0, Category.FOOD, LocalDate.now().plusDays(2)));
-        products.add(new Product("P002", "Мляко", 0.8, Category.FOOD, LocalDate.now().plusDays(7)));
-        products.add(new Product("P003", "Ябълки", 0.5, Category.FOOD, LocalDate.now().plusDays(1)));
-        products.add(new Product("P004", "Банани", 0.6, Category.FOOD, LocalDate.now().minusDays(1)));
-        products.add(new Product("P005", "Сок", 1.2, Category.FOOD, LocalDate.now().plusDays(10)));
+        Product p1 = new Product("1", "Мляко", 1.20, Category.FOOD, LocalDate.now().plusDays(2), 10);
+        Product p2 = new Product("2", "Хляб", 0.80, Category.FOOD, LocalDate.now().plusDays(1), 5);
+        Product p3 = new Product("3", "Шоколад", 1.50, Category.FOOD, LocalDate.now().plusDays(20), 20);
+        Product p4 = new Product("4", "Сапун", 2.00, Category.NON_FOOD, LocalDate.now().plusDays(100), 15);
+        Product p5 = new Product("5", "Паста за зъби", 3.00, Category.NON_FOOD, LocalDate.now().plusDays(50), 10);
+        Product p6 = new Product("6", "Кисело мляко", 1.00, Category.FOOD, LocalDate.now().plusDays(1), 8);
+        Product p7 = new Product("7", "Бисквити", 1.80, Category.FOOD, LocalDate.now().plusDays(10), 12);
+        Product p8 = new Product("8", "Детски шампоан", 4.00, Category.NON_FOOD, LocalDate.now().plusDays(365), 5);
+        Product p9 = new Product("9", "Салфетки", 0.90, Category.NON_FOOD, LocalDate.now().plusDays(180), 30);
+        Product p10 = new Product("10", "Кафе", 5.00, Category.FOOD, LocalDate.now().plusDays(120), 25);
 
-        products.add(new Product("P006", "Шампоан", 3.0, Category.NON_FOOD, LocalDate.now().plusDays(365)));
-        products.add(new Product("P007", "Сапун", 0.7, Category.NON_FOOD, LocalDate.now().plusDays(180)));
-        products.add(new Product("P008", "Паста за зъби", 2.0, Category.NON_FOOD, LocalDate.now().plusDays(30)));
-        products.add(new Product("P009", "Тоалетна хартия", 1.5, Category.NON_FOOD, LocalDate.now().plusDays(60)));
-        products.add(new Product("P010", "Перилен препарат", 5.0, Category.NON_FOOD, LocalDate.now().plusDays(15)));
+        store.addProduct(p1);
+        store.addProduct(p2);
+        store.addProduct(p3);
+        store.addProduct(p4);
+        store.addProduct(p5);
+        store.addProduct(p6);
+        store.addProduct(p7);
+        store.addProduct(p8);
+        store.addProduct(p9);
+        store.addProduct(p10);
 
-        for (Product product : products) {
-            double sellingPrice = store.calculateSellingPrice(product);
-            if (sellingPrice < 0) {
-                System.out.println(product.getName() + " (ID: " + product.getId() + ") не може да се продава - изтекъл срок.");
-            } else {
-                System.out.printf("%s (ID: %s): %.2f лв.%n", product.getName(), product.getId(), sellingPrice);
-            }
+        Cashier cashier = new Cashier("1001", "Георги Иванов", 1200);
+        CashRegister register = new CashRegister("K001", cashier, store);
+
+        try {
+            register.addProductToSale(p1, 100);
+            register.addProductToSale(p3, 1);
+            register.addProductToSale(p4, 1);
+
+            Receipt receipt = register.completeSale(20000);
+            receipt.printReceipt();
+        } catch (InsufficientQuantityException | IllegalArgumentException e) {
+            System.out.println("Грешка при продажбата: " + e.getMessage());
         }
     }
 }
